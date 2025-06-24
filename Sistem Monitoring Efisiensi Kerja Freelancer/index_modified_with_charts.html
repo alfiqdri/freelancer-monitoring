@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyANULlLjU2IMERLFIVNgylIi_IQb5z_WJQ",
+  authDomain: "freelancer-monitoring.firebaseapp.com",
+  databaseURL: "https://freelancer-monitoring-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "freelancer-monitoring",
+  storageBucket: "freelancer-monitoring.firebasestorage.app",
+  messagingSenderId: "357589453416",
+  appId: "1:357589453416:web:85f193ddf5765bd41849dd",
+  measurementId: "G-MLN5WDCEQL"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Monitoring Efisiensi Kerja Freelancer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f1f1f1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #4CAF50;
+            border-bottom: 3px solid #4CAF50;
+        }
+
+        .nav-tab:hover {
+            background: #e9e9e9;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-date {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .activity-task {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+
+        .activity-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .efficiency-score {
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+
+        .score-excellent { background: #4CAF50; color: white; }
+        .score-good { background: #8BC34A; color: white; }
+        .score-average { background: #FF9800; color: white; }
+        .score-poor { background: #f44336; color: white; }
+
+        .recommendation {
+            background: linear-gradient(135deg, #FFA726, #FF7043);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .recommendation h3 {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(45deg, #f0f2f5, #e4e6e9);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Sistem Monitoring Efisiensi Kerja Freelancer</h1>
+            <p>Rancang Bangun Sistem Informasi Monitoring Efisiensi Kerja Digital</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('input')">📝 Input Aktivitas</button>
+            <button class="nav-tab" onclick="showTab('dashboard')">📈 Dashboard</button>
+            <button class="nav-tab" onclick="showTab('history')">📋 Riwayat</button>
+        </div>
+
+        <!-- Tab Input Aktivitas -->
+        <div class="tab-content active" id="input">
+            <h2>Form Input Aktivitas Harian</h2>
+            <form id="activityForm">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div class="form-group">
+                        <label for="tanggal">📅 Tanggal</label>
+                        <input type="date" id="tanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="namaTask">📋 Nama Task</label>
+                        <input type="text" id="namaTask" placeholder="e.g., Desain UI Dashboard" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jamMulai">🕐 Jam Mulai</label>
+                        <input type="time" id="jamMulai" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jamSelesai">🕕 Jam Selesai</label>
+                        <input type="time" id="jamSelesai" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="istirahat">☕ Istirahat (menit)</label>
+                        <input type="number" id="istirahat" placeholder="30" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jumlahRevisi">🔄 Jumlah Revisi</label>
+                        <input type="number" id="jumlahRevisi" placeholder="2" min="0" required>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" class="btn">💾 Simpan Data</button>
+                    <button type="button" class="btn btn-danger" onclick="clearForm()">🗑️ Reset Form</button>
+                    <button type="button" class="btn" onclick="addSampleData()" style="background: linear-gradient(45deg, #FF9800, #F57C00);">📊 Tambah Sample Data</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab Dashboard -->
+        <div class="tab-content" id="dashboard">
+            <h2>Dashboard Efisiensi Kerja</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="totalFokusTime">0</div>
+                    <div class="metric-label">Total Fokus Time (Jam)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="avgEfficiency">0%</div>
+                    <div class="metric-label">Rata-rata Efisiensi</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="totalTasks">0</div>
+                    <div class="metric-label">Total Tasks</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="avgSwitching">0</div>
+                    <div class="metric-label">Rata-rata Task Switching</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+                <div class="chart-container">
+                    <h3>📊 Durasi Kerja per Hari</h3>
+                    <canvas id="workDurationChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>🥧 Distribusi Fokus vs Idle Time</h3>
+                    <canvas id="focusVsIdleChart"></canvas>
+                </div>
+            </div>
+
+            <div class="recommendation" id="recommendations">
+                <h3>💡 Rekomendasi Peningkatan Efisiensi</h3>
+                <p id="recommendationText">Silakan input data aktivitas untuk mendapatkan rekomendasi.</p>
+            </div>
+        </div>
+
+        <!-- Tab Riwayat -->
+        <div class="tab-content" id="history">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Riwayat Aktivitas Kerja</h2>
+                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Hapus Semua Data</button>
+            </div>
+            <div class="activity-list" id="activityList">
+                <p style="text-align: center; color: #666; padding: 50px;">
+                    Belum ada data aktivitas. Silakan input aktivitas terlebih dahulu.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage - menggunakan variabel global untuk menghindari masalah localStorage
+        let activities = [];
+
+        // Load data dari localStorage jika ada
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem('freelancerActivities');
+                if (savedData) {
+                    activities = JSON.parse(savedData);
+                }
+            } catch (error) {
+                console.log('Error loading data:', error);
+                activities = [];
+            }
+        }
+
+        // Save data ke localStorage
+        function saveData() {
+  try {
+    db.ref('activities').set(activities);
+  } catch (error) {
+    console.log('Error saving to Firebase:', error);
+  }
+}
+
+
+        // Initialize pada saat halaman dimuat
+        function loadData() {
+  try {
+    db.ref('activities').once('value')
+      .then(snapshot => {
+        activities = snapshot.val() || [];
+        updateDashboard();
+        updateHistory();
+      });
+  } catch (error) {
+    console.log('Error loading from Firebase:', error);
+    activities = [];
+  }
+}
+
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Update dashboard when switching to it
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'history') {
+                updateHistory();
+            }
+        }
+
+        // Form submission
+        document.getElementById('activityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Ambil data dari form
+            const tanggal = document.getElementById('tanggal').value;
+            const namaTask = document.getElementById('namaTask').value;
+            const jamMulai = document.getElementById('jamMulai').value;
+            const jamSelesai = document.getElementById('jamSelesai').value;
+            const istirahat = parseInt(document.getElementById('istirahat').value) || 0;
+            const jumlahRevisi = parseInt(document.getElementById('jumlahRevisi').value) || 0;
+
+            // Validasi input
+            if (!tanggal || !namaTask || !jamMulai || !jamSelesai) {
+                alert('Mohon isi semua field yang diperlukan!');
+                return;
+            }
+
+            // Validasi jam
+            if (jamSelesai <= jamMulai) {
+                alert('Jam selesai harus lebih besar dari jam mulai!');
+                return;
+            }
+
+            const formData = {
+                id: Date.now(),
+                tanggal: tanggal,
+                namaTask: namaTask,
+                jamMulai: jamMulai,
+                jamSelesai: jamSelesai,
+                istirahat: istirahat,
+                jumlahRevisi: jumlahRevisi
+            };
+
+            // Hitung metrik efisiensi
+            const metrics = calculateEfficiency(formData);
+            formData.metrics = metrics;
+
+            // Tambahkan ke array activities
+            activities.push(formData);
+            
+            // Simpan ke localStorage
+            saveData();
+
+            alert(`✅ Data berhasil disimpan!\n\n📊 Detail Efisiensi:\n- Durasi Kerja: ${metrics.durasiKerja} jam\n- Fokus Time: ${metrics.fokusTime} jam\n- Skor Efisiensi: ${metrics.finalScore}%\n- Penalty: ${metrics.penalty}%`);
+            
+            // Reset form dan update tampilan
+            clearForm();
+            updateDashboard();
+            updateHistory();
+        });
+
+        function calculateEfficiency(data) {
+            // Konversi waktu ke menit
+            const startTime = timeToMinutes(data.jamMulai);
+            const endTime = timeToMinutes(data.jamSelesai);
+            
+            const durasiKerja = endTime - startTime; // dalam menit
+            const fokusTime = durasiKerja - data.istirahat;
+            
+            // Hitung skor efisiensi dasar
+            const skorEfisiensi = (fokusTime / durasiKerja) * 100;
+            
+            // Hitung penalty untuk task switching (simulasi berdasarkan revisi)
+            let penalty = 0;
+            if (data.jumlahRevisi > 3) {
+                penalty = (data.jumlahRevisi - 3) * 2;
+            }
+            
+            const finalScore = Math.max(0, Math.round(skorEfisiensi - penalty));
+            
+            return {
+                durasiKerja: Math.round(durasiKerja / 60 * 100) / 100, // dalam jam
+                fokusTime: Math.round(fokusTime / 60 * 100) / 100, // dalam jam
+                skorEfisiensi: Math.round(skorEfisiensi),
+                penalty: penalty,
+                finalScore: finalScore
+            };
+        }
+
+        function timeToMinutes(timeString) {
+            const [hours, minutes] = timeString.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function clearForm() {
+            document.getElementById('activityForm').reset();
+            document.getElementById('tanggal').valueAsDate = new Date();
+        }
+
+        // Tambahkan fungsi untuk menghapus semua data (untuk testing)
+        function clearAllData() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data?')) {
+                activities = [];
+                saveData();
+                updateDashboard();
+                updateHistory();
+                alert('Semua data telah dihapus!');
+            }
+        }
+
+        // Tambahkan sample data untuk testing
+        function addSampleData() {
+            const sampleActivities = [
+                {
+                    id: 1,
+                    tanggal: '2025-06-23',
+                    namaTask: 'Desain UI Dashboard',
+                    jamMulai: '09:00',
+                    jamSelesai: '13:30',
+                    istirahat: 30,
+                    jumlahRevisi: 2
+                },
+                {
+                    id: 2,
+                    tanggal: '2025-06-22',
+                    namaTask: 'Coding Backend API',
+                    jamMulai: '14:00',
+                    jamSelesai: '18:00',
+                    istirahat: 15,
+                    jumlahRevisi: 1
+                },
+                {
+                    id: 3,
+                    tanggal: '2025-06-21',
+                    namaTask: 'Testing & Bug Fixing',
+                    jamMulai: '10:00',
+                    jamSelesai: '16:30',
+                    istirahat: 45,
+                    jumlahRevisi: 5
+                }
+            ];
+
+            sampleActivities.forEach(activity => {
+                activity.metrics = calculateEfficiency(activity);
+            });
+
+            activities = [...activities, ...sampleActivities];
+            saveData();
+            updateDashboard();
+            updateHistory();
+            alert('Sample data berhasil ditambahkan!');
+        }
+
+        function updateDashboard() {
+            console.log('Updating dashboard with activities:', activities.length);
+            
+            if (activities.length === 0) {
+                // Reset semua nilai ke 0 jika tidak ada data
+                document.getElementById('totalFokusTime').textContent = '0';
+                document.getElementById('avgEfficiency').textContent = '0%';
+                document.getElementById('totalTasks').textContent = '0';
+                document.getElementById('avgSwitching').textContent = '0';
+                document.getElementById('recommendationText').textContent = 
+                    'Silakan input data aktivitas untuk mendapatkan rekomendasi.';
+                return;
+            }
+
+            // Hitung total fokus time
+            const totalFokusTime = activities.reduce((sum, act) => {
+                return sum + (act.metrics ? act.metrics.fokusTime : 0);
+            }, 0);
+            document.getElementById('totalFokusTime').textContent = totalFokusTime.toFixed(1);
+
+            // Hitung rata-rata efisiensi
+            const totalEfficiency = activities.reduce((sum, act) => {
+                return sum + (act.metrics ? act.metrics.finalScore : 0);
+            }, 0);
+            const avgEfficiency = totalEfficiency / activities.length;
+            document.getElementById('avgEfficiency').textContent = Math.round(avgEfficiency) + '%';
+
+            // Total tasks
+            document.getElementById('totalTasks').textContent = activities.length;
+
+            // Rata-rata switching (revisi)
+            const totalRevisi = activities.reduce((sum, act) => sum + act.jumlahRevisi, 0);
+            const avgSwitching = totalRevisi / activities.length;
+            document.getElementById('avgSwitching').textContent = avgSwitching.toFixed(1);
+
+            renderCharts();
+
+            // Generate recommendations
+            generateRecommendations(avgEfficiency, avgSwitching, totalFokusTime);
+        }
+
+        function generateRecommendations(avgEfficiency, avgSwitching, totalFokusTime) {
+            let recommendations = [];
+
+            if (avgEfficiency < 60) {
+                recommendations.push('🔴 Tingkatkan fokus kerja dengan mengurangi distraksi');
+                recommendations.push('⏱️ Pertimbangkan teknik Pomodoro untuk manajemen waktu');
+                recommendations.push('🎯 Tetapkan target fokus minimal 70% per hari');
+            } else if (avgEfficiency < 80) {
+                recommendations.push('🟡 Efisiensi cukup baik, pertahankan konsistensi');
+                recommendations.push('📈 Tingkatkan sedikit lagi untuk mencapai level excellent');
+            } else {
+                recommendations.push('🟢 Excellent! Efisiensi kerja sangat baik');
+                recommendations.push('🏆 Pertahankan performa ini untuk hasil optimal');
+            }
+
+            if (avgSwitching > 3) {
+                recommendations.push('🔄 Kurangi multitasking untuk meningkatkan kualitas output');
+                recommendations.push('📋 Rencanakan task dengan lebih detail sebelum mulai');
+                recommendations.push('🎯 Fokus pada 1-2 task utama per hari');
+            }
+
+            if (totalFokusTime > 0) {
+                if (totalFokusTime / activities.length > 6) {
+                    recommendations.push('⚠️ Rata-rata kerja > 6 jam/hari, pertimbangkan work-life balance');
+                } else if (totalFokusTime / activities.length < 4) {
+                    recommendations.push('📊 Tingkatkan durasi fokus untuk produktivitas optimal');
+                }
+            }
+
+            // Tambahkan rekomendasi berdasarkan data terbaru
+            if (activities.length > 0) {
+                const recentActivity = activities[activities.length - 1];
+                if (recentActivity.metrics && recentActivity.metrics.durasiKerja > 8) {
+                    recommendations.push('✂️ Bagi task besar menjadi bagian-bagian kecil');
+                }
+            }
+
+            const finalText = recommendations.length > 0 ? 
+                recommendations.join('<br>') : 
+                '✅ Terus tingkatkan performa kerja Anda!';
+            
+            document.getElementById('recommendationText').innerHTML = finalText;
+        }
+
+        function updateHistory() {
+            const activityList = document.getElementById('activityList');
+            
+            console.log('Updating history with activities:', activities.length);
+            
+            if (activities.length === 0) {
+                activityList.innerHTML = `
+                    <p style="text-align: center; color: #666; padding: 50px;">
+                        Belum ada data aktivitas. Silakan input aktivitas terlebih dahulu.<br>
+                        <button class="btn" onclick="addSampleData()" style="margin-top: 15px; background: linear-gradient(45deg, #FF9800, #F57C00);">📊 Tambah Sample Data</button>
+                    </p>
+                `;
+                return;
+            }
+
+            const sortedActivities = [...activities].reverse(); // Terbaru di atas
+            
+            activityList.innerHTML = sortedActivities.map(activity => {
+                const scoreClass = getScoreClass(activity.metrics ? activity.metrics.finalScore : 0);
+                const metrics = activity.metrics || { finalScore: 0, fokusTime: 0, durasiKerja: 0 };
+                
+                return `
+                    <div class="activity-item">
+                        <div class="activity-info">
+                            <div class="activity-date">${formatDate(activity.tanggal)}</div>
+                            <div class="activity-task">📋 ${activity.namaTask}</div>
+                            <div class="activity-details">
+                                🕐 ${activity.jamMulai} - ${activity.jamSelesai} | 
+                                ⏱️ Fokus: ${metrics.fokusTime}h | 
+                                💼 Durasi: ${metrics.durasiKerja}h |
+                                🔄 Revisi: ${activity.jumlahRevisi}x |
+                                ☕ Istirahat: ${activity.istirahat}m
+                            </div>
+                        </div>
+                        <div class="efficiency-score ${scoreClass}">
+                            ${metrics.finalScore}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getScoreClass(score) {
+            if (score >= 85) return 'score-excellent';
+            if (score >= 70) return 'score-good';
+            if (score >= 50) return 'score-average';
+            return 'score-poor';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        
+let workDurationChart, focusVsIdleChart;
+
+function renderCharts() {
+    const labels = activities.map(a => a.tanggal);
+    const durasiKerjaData = activities.map(a => a.metrics.durasiKerja);
+    const totalFokus = activities.reduce((sum, a) => sum + a.metrics.fokusTime, 0);
+    const totalDurasi = activities.reduce((sum, a) => sum + a.metrics.durasiKerja, 0);
+    const totalIdle = totalDurasi - totalFokus;
+
+    if (workDurationChart) workDurationChart.destroy();
+    if (focusVsIdleChart) focusVsIdleChart.destroy();
+
+    const ctx1 = document.getElementById('workDurationChart').getContext('2d');
+    workDurationChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Durasi Kerja (jam)',
+                data: durasiKerjaData,
+                backgroundColor: '#4CAF50'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Jam' }
+                }
+            }
+        }
+    });
+
+    const ctx2 = document.getElementById('focusVsIdleChart').getContext('2d');
+    focusVsIdleChart = new Chart(ctx2, {
+        type: 'pie',
+        data: {
+            labels: ['Fokus Time', 'Idle Time'],
+            datasets: [{
+                data: [totalFokus, totalIdle],
+                backgroundColor: ['#4CAF50', '#FF9800']
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+
+        // Initialize dashboard pada saat halaman dimuat
+        updateDashboard();
+        updateHistory();
+
+        // Debug: Tampilkan jumlah aktivitas di console
+        console.log('Initial activities loaded:', activities.length);
+    </script>
+</body>
+</html>
